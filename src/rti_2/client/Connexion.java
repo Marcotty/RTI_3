@@ -10,6 +10,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import static library.SNMPLibrary.getNextASynchro;
+import static library.SNMPLibrary.getSynchro;
+import static library.SNMPLibrary.ping;
+import static library.SNMPLibrary.setSynchro;
 
 /**
  *
@@ -48,7 +52,7 @@ public class Connexion extends javax.swing.JFrame {
 
         jLabel1.setText("Adresse du serveur :");
 
-        TFAdresseServeur.setText("0.0.0.0");
+        TFAdresseServeur.setText("127.0.0.1");
 
         jLabel2.setText("Port :");
 
@@ -110,7 +114,17 @@ public class Connexion extends javax.swing.JFrame {
 
     private void BConnecterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BConnecterActionPerformed
         // TODO add your handling code here:
-        ConnexionServer();
+        if(ping(TFAdresseServeur.getText()) == 1)
+        {
+            String name = getSynchro("1.3.6.1.2.1.1.5.0", TFAdresseServeur.getText());
+            String contact = getSynchro("1.3.6.1.2.1.1.4.0", TFAdresseServeur.getText());
+            String mask = getSynchro("1.3.6.1.2.1.4.20.1.3.10.59.22.62", TFAdresseServeur.getText());
+            System.out.println("SNMP Requetes :\n Name : "+name +"\n Contact : " + contact + "\n Mask : " + mask);
+            
+            getNextASynchro(TFAdresseServeur.getText());
+            ConnexionServer();
+        }
+        
     }//GEN-LAST:event_BConnecterActionPerformed
 
     /**

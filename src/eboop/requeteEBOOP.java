@@ -16,8 +16,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.StringTokenizer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import rti_2.checkinap.requetereponse.ConsoleServeur;
 import rti_2.checkinap.requetereponse.Requete;
 
@@ -36,29 +34,29 @@ public class requeteEBOOP implements Requete,Serializable
     public static int REQ_DEL_PAN = 36;
     public static int REQ_BUY = 37;
     
-    private static int CAPACITE_NAVIRE = 1;
-    private static int MATRICULE_NAVIRE = 2;
-    private static int ID_TRAVERSEES = 3;
-    private static int NUMERO_CLIENT = 4;
+    private static int CAPACITE_NAVIRE = 38;
+    private static int MATRICULE_NAVIRE = 39;
+    private static int ID_TRAVERSEES = 40;
+    private static int NUMERO_CLIENT = 41;
     
-    private static int PRIX = 5;
-    private static int NUMERO_CARTE = 6;
-    private static int DATE_CARTE = 7;
-    private static int NOMBRE_PASSAGERS = 8;    
-    private static int LAST_MINUTE = 9; 
+    private static int PRIX = 42;
+    private static int NUMERO_CARTE = 43;
+    private static int DATE_CARTE = 44;
+    private static int NOMBRE_PASSAGERS = 45;    
+    private static int LAST_MINUTE = 46; 
     
-    private static int DATE_TRAVERSEE = 10; 
-    private static int NAVIRE_USED = 11;
+    private static int DATE_TRAVERSEE = 47; 
+    private static int NAVIRE_USED = 48;
     
     private ArrayList<String> dataList;
-    
+    private static final long serialVersionUID = 6529685098267757690L;
     private MyInstruction sgbd;
     private int code;
     private String data;
     boolean end = false;
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
-    
+    private Socket s;
     public requeteEBOOP(int c,String dat)
     {
         code = c;
@@ -71,6 +69,7 @@ public class requeteEBOOP implements Requete,Serializable
     }
     @Override
     public Runnable createRunnable(Socket s, ConsoleServeur cs) {
+        this.s = s;
         this.oos=oos;
         this.ois = ois;
         connectToDatabase();
@@ -91,9 +90,10 @@ public class requeteEBOOP implements Requete,Serializable
     @Override
     public void requeteStart(Socket s)
     {
+        System.out.println("req start");
         try {
-            oos=(ObjectOutputStream)s.getOutputStream();
-            ois=(ObjectInputStream)s.getInputStream();
+            oos=new ObjectOutputStream(s.getOutputStream());
+            
             connectToDatabase();
         } catch (IOException ex) {
             System.err.println("requeteEBOOP : requeteStart : "+ex);
@@ -103,8 +103,8 @@ public class requeteEBOOP implements Requete,Serializable
         rep = new reponseEBOOP(reponseEBOOP.ACK,getData());
         send(rep);
         
-        while(end == false)
-        {
+        //while(end == false)
+        //{
             requeteEBOOP req = null;
             req = receive();
             
@@ -127,7 +127,7 @@ public class requeteEBOOP implements Requete,Serializable
                 reqBuy(req);
             if(req.code==REQ_DEL_PAN)
                 reqDelPan(req);           
-        }
+        //}
         try
         {
             ois.close();
@@ -371,7 +371,52 @@ public class requeteEBOOP implements Requete,Serializable
     
     public void reqLog(requeteEBOOP req)
     {
-        
+        boolean bool = false;
+        try 
+        {
+            System.err.println("LOGIN | " + req.getData());
+            reponseEBOOP rep = null;
+            
+            sgbd.SelectionCond("VOYAGEURS","NUM_CLIENT = " + req.getData() );
+            //System.err.println("je suis ici 2");
+          
+            while(sgbd.getResultat().next())
+            {
+                bool = true;
+                String tmp = "";
+                System.err.println("je suis ici 3");
+
+                tmp +=sgbd.getResultat().getString("NUM_CLIENT") + ",";
+                tmp +=sgbd.getResultat().getString("NOM") + ",";
+                tmp +=sgbd.getResultat().getString("PRENOM") + ",";
+                tmp +=sgbd.getResultat().getString("ADRESSE") + ",";
+                tmp +=sgbd.getResultat().getString("MAIL") + ",";
+                tmp +=sgbd.getResultat().getString("NATIONALITE") + ",";
+                //construction de la date
+                StringTokenizer st = new StringTokenizer(sgbd.getResultat().getString("NAISSANCE"),"-");
+                String annee = st.nextToken();
+                String mois = st.nextToken();
+                String jour = st.nextToken();
+                st = new StringTokenizer(jour," ");
+                String jour_tmp = st.nextToken(); 
+                String depart = jour_tmp + "/" + mois + "/" + annee;
+                System.err.println("VOICI LA DATE  : " + depart);
+                //construction de la date
+                
+                tmp +=depart;
+                System.err.println("je suis ici 4");
+
+                rep = new reponseEBOOP(reponseEBOOP.ACK, tmp);
+                break;
+            }
+            if(!bool)rep = new reponseEBOOP(reponseEBOOP.FAIL,"Erreur login");
+           
+            send(rep);
+        }
+        catch (SQLException ex)
+        {
+            System.err.println(ex);
+        }
     }
     
     public void reqBook(requeteEBOOP req)
@@ -402,6 +447,7 @@ public class requeteEBOOP implements Requete,Serializable
     
     public void connectToDatabase()
     {
+        sgbd = new MyInstruction();
         try
         {
             Class.forName("com.mysql.jdbc.Driver");
@@ -447,6 +493,7 @@ public class requeteEBOOP implements Requete,Serializable
         requeteEBOOP req = null;
         try
         {
+            ois=new ObjectInputStream(s.getInputStream());
             req = (requeteEBOOP) ois.readObject();
         }
         catch(Exception e)

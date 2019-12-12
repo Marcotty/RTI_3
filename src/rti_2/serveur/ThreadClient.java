@@ -81,7 +81,8 @@ public class ThreadClient extends Thread {
         System.out.println("SERVER | Thread " + this.getId() + " Attente requete");
         Requete req = null;
         req = RecevoirRequete(s);
-        
+        if(req == null)
+            System.out.println("requete nulle");
         //Traiter la requete
         if(req.getCode() == LOGIN)
         {
@@ -99,9 +100,10 @@ public class ThreadClient extends Thread {
         {
             traiteRequeteClose(s, cs);
         }
-        else if(req.getCode()==requeteEBOOP.REQSTART)
+        else //if(req.getCode()==requeteEBOOP.REQSTART)
         {
-            req = (requeteEBOOP) req;
+            System.out.println("SERVER | Requete Start");
+            //req = (requeteEBOOP) req;
             req.requeteStart(s);
         }
 

@@ -79,7 +79,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="TFAdresseServeur">
       <Properties>
-        <Property name="text" type="java.lang.String" value="0.0.0.0"/>
+        <Property name="text" type="java.lang.String" value="127.0.0.1"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">

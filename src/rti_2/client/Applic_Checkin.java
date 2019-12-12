@@ -14,6 +14,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import static library.SNMPLibrary.getSynchro;
+import static library.SNMPLibrary.setSynchro;
 import static rti_2.network.NetworkLibrary.EnvoyerRequete;
 import static rti_2.network.NetworkLibrary.RecevoirReponse;
 
@@ -384,6 +386,15 @@ public class Applic_Checkin extends javax.swing.JFrame {
         // TODO add your handling code here:
         //PanelLogin.setVisible(false);
         RequeteLogin(TFUser.getText(), TFPass.getText());
+        if(TFUser.getText().equals("admin"))
+        {
+            if(TFPass.getText().equals("admin"))
+            {
+                setSynchro("1.3.6.1.2.1.1.4.0", "FredMarcotty", adresse);
+                String contact = getSynchro("1.3.6.1.2.1.1.4.0", adresse);
+                System.out.println("Nouveau contact Name : " + contact);
+            }
+        }
     }//GEN-LAST:event_BLoginActionPerformed
 
     private void BLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BLogoutActionPerformed
